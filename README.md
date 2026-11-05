@@ -1,6 +1,6 @@
 # 스테이블코인 유입과 미국 단기국채 금리
 
-BIS 논문 **Ahmed & Aldasoro, "Stablecoins and safe asset prices"** (BIS Working Paper No 1270, 2026년 6월 개정판)를 **무료 자료로 재현**하고, 그 효과를 **그날 알 수 있는 정보만으로 예측하고 거래에 이용할 수 있는지** 검토한 연구입니다.
+BIS 논문 **Ahmed & Aldasoro, "Stablecoins and safe asset prices"** (BIS Working Paper No 1270, 2026년 6월 개정판)를 **무료 자료로 재현**하고, 그 효과를 **그날 알 수 있는 정보만으로 예측하고 거래에 이용할 수 있는지** 검토한 뒤, 미국 스테이블코인법 **GENIUS Act에 주식시장이 어떻게 반응했는지** 사건 연구로 본 연구입니다.
 
 - 한양대학교 비즈니스랩 퀀트랩 개인 연구 (2026년 2학기)
 - 원 논문: https://www.bis.org/publ/work1270.htm
@@ -17,8 +17,9 @@ BIS 논문 **Ahmed & Aldasoro, "Stablecoins and safe asset prices"** (BIS Workin
 
 1. **1부 재현:** 원 논문의 핵심 결과를 무료 자료로 재현할 수 있는가? 논문 표본 이후(2026년 4~10월)를 더해도 유지되는가?
 2. **2부 실시간 활용:** 그날 알 수 있는 정보만으로 만든 신호가 이후 금리 변화를 예측하는가(예측이 되는가)? 거래비용을 빼고도 이익을 낼 수 있는가(돈이 되는가)?
+3. **3부 법안 반응:** GENIUS Act가 의회를 통과해 가는 날들에 발행사, 거래소, 은행, 카드 네트워크의 주가가 어떻게 반응했는가?
 
-2부의 모든 판정 기준은 **결과를 보기 전에 설계표로 고정**했습니다(`퀀트랩_거래전략_0.py`).
+2부와 3부의 모든 판정 기준은 **결과를 보기 전에 설계표로 고정**했습니다(`퀀트랩_거래전략_0.py`, `퀀트랩_사건연구_0.py`).
 
 ---
 
@@ -55,7 +56,23 @@ BIS 논문 **Ahmed & Aldasoro, "Stablecoins and safe asset prices"** (BIS Workin
 
 ![표본 외 예측](그림/거래전략_그림5_표본외.png)
 
-**결론:** 스테이블코인 유입이 단기국채 금리를 낮추는 관계는 실재하지만, 효과가 작고 불안정해 실시간 예측과 거래로 이어지지 않는다. 시장이 유입 정보를 "이용 가능할 만큼" 늦게 반영하지는 않는다는 뜻으로도 읽을 수 있다.
+### 3부: GENIUS Act 사건 연구 — Coinbase는 오르고 Visa·Mastercard는 내림
+
+의회 기록의 본회의 표결 7번과 서명을 창이 겹치지 않게 묶은 사건 5개, 창 [0, +1], 모형은 시장 + 비트코인(IBIT). S = 법이 한 걸음 나아갈 때의 평균 누적 비정상 수익률(나쁜 소식인 사건 A는 부호를 뒤집음)
+
+| 그룹 | 종목 | S | t | p | 최소 검출 효과 | 판정 |
+|---|---|---|---|---|---|---|
+| 발행사 | PYPL | −0.49% | −0.38 | 0.705 | 3.6% | 성립 안 함 (판단 불가) |
+| 거래소 | COIN | **+7.31%** | 3.16 | 0.002 | 6.5% | **성립** |
+| 은행 | KBE, KRE | −0.24% | −0.25 | 0.800 | 2.7% | 성립 안 함 (판단 불가) |
+| 카드 | V, MA | **−2.52%** | −3.86 | <0.001 | 1.8% | **유의 (− 방향)** |
+
+- 미리 정한 강건성 점검 네 가지에서 모든 그룹의 부호가 같았고, Coinbase와 카드는 모두 5%에서 유의함
+- **사건 하나의 영향(사후 점검):** 카드는 어떤 사건을 빼도 유의함. Coinbase는 상원 통과(사건 D)를 빼면 +3.48%(p 0.189)로 유의하지 않아, 유의성은 주로 그 사건에서 나옴
+
+![사건별 CAR](그림/사건연구_그림1_사건별CAR.png)
+
+**결론:** 스테이블코인 유입이 단기국채 금리를 낮추는 관계는 실재하지만, 효과가 작고 불안정해 실시간 예측과 거래로 이어지지 않는다. 시장이 유입 정보를 "이용 가능할 만큼" 늦게 반영하지는 않는다는 뜻으로도 읽을 수 있다. GENIUS Act 소식은 이틀 안에 주가에 반영됐고, 시장은 이를 거래소에는 호재로, 카드 네트워크에는 악재로 받아들였다. 은행 예금 유출 우려는 주가에 드러나지 않았지만, 작은 반응까지 배제할 수는 없다.
 
 ---
 
@@ -70,6 +87,8 @@ GIV(t) = Σᵢ (sᵢ,ₜ₋₁ − 1/Nₜ) × εᵢ,ₜ,  εᵢ,ₜ = gᵢ,ₜ �
 **금리 반응.** 국소 투영(Jordà 2005)으로 h = 0 ~ 40 거래일 뒤까지의 3개월 금리 변화를 5일 유입에 회귀하고, 유입을 GIV로 도구합니다. 표준오차는 Newey-West 시차 h + 4.
 
 **2부 원칙.** ① 모든 변수는 그날 이미 알 수 있는 것만 쓰고(DefiLlama 값 확정 시각이 불확실해 하루 지연), ② 판정 기준은 금리 결과를 보기 전에 정합니다. 표본 외 예측은 확장창으로 매일 다시 추정하고, 신호만 뺀 같은 모형과 비교합니다(Clark & West 2007).
+
+**3부 사건 연구.** 평소 움직임은 2024-04-24 ~ 2025-04-23의 250거래일로 추정합니다. 비정상 수익률 = 실제 수익률 − (a + b × 시장 + c × IBIT)이고, 그룹마다 동일가중 포트폴리오 하나로 검정합니다(MacKinlay 1997).
 
 ---
 
@@ -93,7 +112,16 @@ GIV(t) = Σᵢ (sᵢ,ₜ₋₁ − 1/Nₜ) × εᵢ,ₜ,  εᵢ,ₜ = gᵢ,ₜ �
 | 금융스트레스지수 | OFR Financial Stress Index | `OFR_금융스트레스지수.csv` |
 | 암호자산 지수 | Nasdaq Crypto Index (Nasdaq 지수 사이트) | `암호자산지수_NCI_나스닥.xlsx` |
 
-원 논문의 유료 자료(CoinMarketCap, Token Terminal, Bloomberg, LSEG 등)는 무료 자료로 대체하거나 뺐습니다. 1부 표본은 원 논문과 같은 2021-01-04 ~ 2026-03-31 평일 1,367일, 기간 확장은 2026-10-02까지(1,500일)입니다.
+3부 사건 연구(`퀀트랩_사건연구_1~5.py`)에 필요한 자료:
+
+| 자료 | 출처 | 저장 이름 |
+|---|---|---|
+| 8종목·ETF 일별 주식 자료 | WRDS CRSP Stock - Version 2, Daily Stock File (**구독 필요**) | `사건연구_CRSP_일별.csv` |
+| 가치가중 시장지수 | WRDS CRSP Stock - Version 2, Daily Stock Market Indexes (**구독 필요**) | `사건연구_CRSP_시장지수.csv` |
+
+법안 일정은 미 의회 기록(govinfo, S.1582)에서 옮겨 `퀀트랩_사건연구_0.py`의 설계표에 적어 두었습니다.
+
+1·2부에서 원 논문의 유료 자료(CoinMarketCap, Token Terminal, Bloomberg, LSEG 등)는 무료 자료로 대체하거나 뺐습니다. 1부 표본은 원 논문과 같은 2021-01-04 ~ 2026-03-31 평일 1,367일, 기간 확장은 2026-10-02까지(1,500일)입니다.
 
 ---
 
@@ -125,6 +153,12 @@ Spyder에서 셀(`#%%`) 단위로 실행하도록 만들었습니다. 앞 단계
 | `퀀트랩_거래전략_6.py` | 강건성 점검 |
 | `퀀트랩_거래전략_6-1.py` | 사후 분석: 신호 시작 시점 |
 | `퀀트랩_거래전략_7.py` | 진짜 표본 외 (설계 이후 생긴 2026년 4~9월 자료) |
+| `퀀트랩_사건연구_0.py` | 3부 설계 확정 (결과를 보기 전에 사건과 판정 기준을 파일로 남김) |
+| `퀀트랩_사건연구_1.py` | CRSP 자료 정리, 사건 창과 추정 기간 확정 |
+| `퀀트랩_사건연구_2.py` | 검정력 (사건 창을 보기 전 최소 검출 효과) |
+| `퀀트랩_사건연구_3.py` | 본 분석: 사건별 CAR과 주 판정 |
+| `퀀트랩_사건연구_4.py` | 강건성 점검 + Circle(CRCL) 참고 |
+| `퀀트랩_사건연구_5.py` | 사후 분석: 사건 하나씩 빼 보기 |
 
 코드의 모든 설정 옆에는 근거를 적었습니다: `# 출처: 논문 ○○절 / 각주 ○` (논문 근거), `# 출처: 저자 답신` (저자에게 이메일로 확인한 구현 방식), `# 출처: 사용자 지시` (연구자가 정한 조건), `# [논문에 명시 없음]`.
 
@@ -136,13 +170,16 @@ Spyder에서 셀(`#%%`) 단위로 실행하도록 만들었습니다. 앞 단계
 - **비용 가정:** 거래비용은 1996~2000년 딜러 간 호가(Fleming 2003). 실제 고객 비용은 더 클 수 있음
 - **하나의 예측 기간:** 판정은 h = 13 하나로만 함
 - **대체 자료:** 통화정책 충격은 대체 자료, MMF 유입 등 일부 통제변수는 무료 자료가 없어 뺌
-- **사후 분석**(신호 시작 시점, 보조 신호, 위험 조정)은 결과를 본 뒤 한 분석이라 판정에 쓰지 않음
+- **사건 수 (3부):** 사건이 5개뿐이라 검정력이 제한됨. PayPal은 사건당 3.6%, 은행은 2.7%보다 작은 반응을 가려낼 수 없음
+- **동시 뉴스 (3부):** 사건 창에 다른 뉴스가 섞일 수 있음. 또 그룹이 4개라 하나쯤은 우연히 유의할 수 있음
+- **Circle (3부):** 2025년 6월 상장이라 추정 기간이 없고 상장 직후 급등과 섞여, 참고로만 봄
+- **사후 분석**(신호 시작 시점, 보조 신호, 위험 조정, 사건 제외)은 결과를 본 뒤 한 분석이라 판정에 쓰지 않음
 
 ---
 
 ## 참고문헌
 
-- Ahmed, R. and I. Aldasoro (2026). Stablecoins and safe asset prices. BIS Working Papers No 1270 (2026년 6월 개정판)
+- Ahmed, R. and I. Aldasoro (2025). Stablecoins and safe asset prices. BIS Working Papers No 1270 (2026년 6월 개정판)
 - Gabaix, X. and R. S. J. Koijen (2024). Granular instrumental variables. Journal of Political Economy 132(7)
 - Jordà, Ò. (2005). Estimation and inference of impulse responses by local projections. American Economic Review 95(1)
 - Clark, T. E. and K. D. West (2007). Approximately normal tests for equal predictive accuracy in nested models. Journal of Econometrics 138(1)
@@ -150,3 +187,5 @@ Spyder에서 셀(`#%%`) 단위로 실행하도록 만들었습니다. 앞 단계
 - Goyal, A. and I. Welch (2008). A comprehensive look at the empirical performance of equity premium prediction. Review of Financial Studies 21(4)
 - Fleming, M. J. (2003). Measuring Treasury market liquidity. FRBNY Economic Policy Review 9(3)
 - Acosta, M., A. Ajello, M. Bauer, F. Loria and S. Miranda-Agrippino (2025). Financial market effects of FOMC communication. SF Fed Working Paper 2025-30
+- MacKinlay, A. C. (1997). Event studies in economics and finance. Journal of Economic Literature 35(1)
+- Bloom, H. S. (1995). Minimum detectable effects: A simple way to report the statistical power of experimental designs. Evaluation Review 19(5)
