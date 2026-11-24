@@ -296,3 +296,18 @@ for 연도, 묶음 in 연도자료.groupby(연도자료.index.year):
         r = sm.OLS(묶음["유입5"], sm.add_constant(묶음[이름])).fit(cov_type="HAC", cov_kwds={"maxlags": 1})
         줄.append(f"{이름} F {r.tvalues[이름] ** 2:.1f}")
     print(f"  {연도}: " + " / ".join(줄) + f"  (관측치 {len(묶음)})")
+
+# 연도별 1단계 - 논문 방식(재현용) GIV, 2021년부터 (11/24 추가: 출력만, 새 설정 없음)
+#   왜: 위 표는 실시간 GIV 가 있는 2024년부터만 나옴 (2023-12-31 까지 비움). 신호를 2024년부터 쓴 근거
+#       (설계 "처음비움_달력일" - 연도별 1단계 계수 > 0 이고 F ≥ 10 인 해부터, Staiger & Stock 1997)를
+#       2021 ~ 2023년까지 코드로 다시 볼 수 있게 함
+#   계산: [셀 7] 과 같음 (5일 유입 ← GIV 5일 합, 상수 포함, NW 시차 1, F = t²). 금리 자료는 쓰지 않음
+#   참고: 설계 기록의 2022년 계수(재현용 −0.25)와 조금 다를 수 있음 - DefiLlama 과거 값 수정으로
+#         자료를 다시 받을 때마다 값이 조금씩 달라짐. 기준 충족 여부(2022 계수 음수, 2023 F < 10)는 같음
+print("\n[연도별 1단계] 논문 방식(재현용) GIV, 2021년부터 - 신호 시작 연도 근거 (NW 시차 1)")
+재현연도 = pd.concat([유입5, 재현.rename("재현용")], axis=1).dropna()
+for 연도, 묶음 in 재현연도.groupby(재현연도.index.year):
+    r = sm.OLS(묶음["유입5"], sm.add_constant(묶음["재현용"])).fit(cov_type="HAC", cov_kwds={"maxlags": 1})
+    F = r.tvalues["재현용"] ** 2
+    충족 = "충족" if (r.params["재현용"] > 0 and F >= 10) else "미충족"
+    print(f"  {연도}: 계수 {r.params['재현용']:+.2f}, F {F:.1f}, 관측치 {int(r.nobs)}  -> 기준 {충족}")
